@@ -132,7 +132,6 @@ def wordle():
     terminado = False
 
     palabra_aleatoria = escoger_palabra_aleatoria()
-    print(palabra_aleatoria) #PANDA: borrar
 
     ###### TURNOS
     while not terminado:
@@ -150,4 +149,5 @@ def wordle():
 ################################            JUGAR
 
 wordle()
+
 
