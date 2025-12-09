@@ -120,12 +120,10 @@ def wordle():
     terminado = False
 
     palabra_aleatoria = escoger_palabra_aleatoria()
-    print(palabra_aleatoria) #PANDA: borrar
 
     ###### TURNOS
     while not terminado:
         nueva_palabra = añadir_nueva_palabra(N)
-        print(nueva_palabra)
 
         mostrar_respuesta(palabra_aleatoria, nueva_palabra)
 
@@ -139,5 +137,6 @@ def wordle():
 ################################            JUGAR
 
 wordle()
+
 
 
