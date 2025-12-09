@@ -14,140 +14,115 @@
 
 from random import randint
 
+################################            VARIABLES GLOBALES
+##### CONSTANTES Y VARIABLES
+TARGET_WORD_SIZE = 5  # Constante de la longitud de la palabra
+game_over = False # Variable de control del juego
+
 
 ################################            FUNCIONES
 
 #####       1. Iniciar Juego
 
-def escoger_palabra_aleatoria(): 
-    lista_palabras_posibles = ['P A N D A', 'J A M O N', 'A E R E O']
+def get_random_word() -> list[str]:
+    possible_words = ['P A N D A', 'J A M O N', 'A E R E O']
 
-    num_aleatorio = randint(0, len(lista_palabras_posibles) - 1)
+    random_index = randint(0, len(possible_words) - 1) # Índice aleatorio entre 0 y la longitud de la lista -1
 
-    palabra_aleatoria = lista_palabras_posibles[num_aleatorio].split()
+    random_word = possible_words[random_index].split() # Divide la cadena en una lista de caracteres
 
-    return palabra_aleatoria #Devuelve una lista de caracteres
+    return random_word #Devuelve una lista de caracteres
 
-def preguntar_palabra_usuario(N): 
-    palabra_usuario = input('Introduzca una palabra que contenga {} letras: '.format(N))
-    palabra_usuario = palabra_usuario.upper()
-
-    return palabra_usuario
-
-def palabra_valida_caracteres(palabra): 
-    valida = True
-    for letra in palabra:
-        if not ('A' <= letra <= 'Z' or letra == 'Ñ'):
-            valida = False
+def is_valid_word_characters(word: list) -> bool:
+    is_valid = True
+    for letter in word:
+        if not ('A' <= letter <= 'Z' or letter == 'Ñ'):
+            is_valid = False
             break
+    # Se podría resumir todo en una sola línea pero sería menos legible por lo que lo dejamos así
+    return is_valid
 
-    return valida
-
-def palabra_valida_longitud(palabra, N): 
-    valida = True
-    if len(palabra) != N:
-        valida = False
+def is_word_length_valid(word: str) -> bool:
+    # valida = True
+    # if len(word) != TARGET_WORD_SIZE:
+    #     valida = False
+    # return valida
+        
+    # Toda la logica se puede resumir en una sola linea usando un condicional:
+    return len(word) == TARGET_WORD_SIZE # esto devuelve True o False directamente
     
-    return valida
 
 #####       2. Palabra del Usuario VS Palabra Aleatoria
 
-def añadir_nueva_palabra(N): 
+def get_user_word_input() -> str:
     while True:
-        palabra_usuario = preguntar_palabra_usuario(N)
-        if palabra_valida_caracteres(palabra_usuario) and palabra_valida_longitud(palabra_usuario, N):
-            break
+        user_word = input('Introduzca una palabra que contenga {} letras: '
+                                .format(TARGET_WORD_SIZE)).upper()
+        if not is_word_length_valid(user_word):
+            print('\nLa palabra debe contener {} letras'.format(TARGET_WORD_SIZE))
+            continue
+        if not is_valid_word_characters(user_word):
+            print('\nAlgún caracter no es válido en _{}_'.format(user_word))
+            continue
+        break
+    return user_word
+
+def match_positions(random_word_copy: list, new_word: list, result_list: list) -> tuple:
+    for position in range(len(new_word)):
+        letter = new_word[position]
         
-        if not palabra_valida_longitud(palabra_usuario, N):
-            print() #Visual
-            print('La palabra debe contener {} letras'.format(N))
+        if letter in random_word_copy:
+            if random_word_copy[position] == letter:
+                result_list[position] = letter.upper()
+                random_word_copy[position] = None
+                
+    return random_word_copy, result_list
 
-        if not palabra_valida_caracteres(palabra_usuario):
-            print() #Visual
-            print('Algún caracter no es válido en _{}_'.format(palabra_usuario))
+def match_letters(random_word_copy: list, new_word: list, result_list: list) -> list:
+    for position in range(len(new_word)):
+        letter = new_word[position]
+        
+        if result_list[position] == ' ':
+            if letter in random_word_copy and letter is not None:
+                result_list[position] = letter.lower()
+                random_word_copy[random_word_copy.index(letter)] = None
+    return result_list
+
+def check_word_match(random_word, new_word):
+    result_list = [' '] * len(random_word) # [' ', ' ', ' ', ' ', ' ']
+    random_word_copy = list(random_word)
     
-    return palabra_usuario
-
-def coinciden_posiciones(palabra_aleatoria_espejo, nueva_palabra, lista_resultado):
-    for posicion in range(len(nueva_palabra)):
-        letra = nueva_palabra[posicion]
-
-        if letra in palabra_aleatoria_espejo:
-            if palabra_aleatoria_espejo[posicion] == letra:
-                lista_resultado[posicion] = letra.upper()
-                palabra_aleatoria_espejo[posicion] = None
+    random_word_copy, result_list = match_positions(
+        random_word_copy, new_word, result_list
+    )
+    result_list = match_letters(
+        random_word_copy, new_word, result_list
+    )
     
-    return palabra_aleatoria_espejo, lista_resultado
-
-def conciden_letras(palabra_aleatoria_espejo, nueva_palabra, lista_resultado):
-    for posicion in range(len(nueva_palabra)):
-        letra = nueva_palabra[posicion]
-
-        if lista_resultado[posicion] == ' ':
-            if letra in palabra_aleatoria_espejo and letra is not None:
-                lista_resultado[posicion] = letra.lower()
-                palabra_aleatoria_espejo.remove(letra)
-
-    return lista_resultado
-
-def letra_correcta(palabra_aleatoria_espejo, nueva_palabra, lista_resultado):
-    palabra_aleatoria_espejo, lista_resultado = coinciden_posiciones(palabra_aleatoria_espejo, nueva_palabra, lista_resultado)
-    
-    lista_resultado = conciden_letras(palabra_aleatoria_espejo, nueva_palabra, lista_resultado)
-    
-    return lista_resultado
-
-def comparar_palabras(palabra_aleatoria, nueva_palabra):
-    lista_resultado = [' ', ' ', ' ', ' ', ' ']
-
-    palabra_aleatoria_espejo = list(palabra_aleatoria)
-
-    lista_resultado = letra_correcta(palabra_aleatoria_espejo, nueva_palabra, lista_resultado)
-    
-    return lista_resultado
-
-def mostrar_respuesta(palabra_aleatoria, nueva_palabra):
-    lista_resultado = comparar_palabras(palabra_aleatoria, nueva_palabra)
-    
-    print(lista_resultado)
-
-    return lista_resultado
-
-def comprobar_terminado(lista_resultado):
-    terminado = True
-
-    for letra in lista_resultado:
-        if not ('A' <= letra <= 'Z' or letra == 'Ñ'):
-            terminado = False
-            break
-    
-    return terminado
-
+    return result_list
 
 ################################            FUNCIÓN GENERAL
 
-def wordle():
-    ###### INICIO
-    N = 5 #Constante de la longitud
-    terminado = False
-
-    palabra_aleatoria = escoger_palabra_aleatoria()
+def play_wordle():
+    selected_word = get_random_word()
 
     ###### TURNOS
-    while not terminado:
-        nueva_palabra = añadir_nueva_palabra(N)
+    while not game_over:
+        entered_word = get_user_word_input()
 
-        lista_resultado = mostrar_respuesta(palabra_aleatoria, nueva_palabra)
+        match_results = check_word_match(selected_word, entered_word)
+        print('Palabra: ', '_'.join(match_results))
 
-        if comprobar_terminado(lista_resultado):
-            print() #Visual
-            print('ENHORABUENA, HAS GANADO')
-
-            break
+        if not is_valid_word_characters(match_results):
+            continue # Si la palabra no es válida, volvemos al inicio del bucle
+        
+        print() #Visual
+        print('ENHORABUENA, HAS GANADO')
+        game_over = True # Cambiamos el estado de la variable de control
     
 
 ################################            JUGAR
 
-wordle()
-
-
+# Declaramos el punto de entrada del programa: https://stackoverflow.com/questions/419163/what-does-if-name-main-do
+if __name__ == '__main__':
+    play_wordle()
